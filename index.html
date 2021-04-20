@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Simple Leaflet v1.0</title>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="select.css">
+  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+  <style type="text/css">
+
+    @keyframes slide-up {
+    from {
+        
+        opacity: .25;
+        line-height: 500px;
+    }to{
+        
+        opacity: 1;
+        line-height: 25px;
+      }
+    }
+
+    .slide-up {
+      animation: slide-up 2s;
+    }
+
+ #leaflettb {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#leaflettb td, #leaflettb th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#leaflettb tr:nth-child(even){background-color: #f2f2f2;}
+
+#leaflettb tr:hover {background-color: #ddd;}
+
+#leaflettb th {
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+  width: 50px;
+}
+
+  </style>
+
+  
+
+</head>
+
+<body >
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">GIS Project</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="https://github.com/CodeVitual">Designed by KTN</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row slide-up">
+
+      <div class="col-ls-12" style="text-align: center;padding-left: 5%;">       
+<h1 class="mt-5">พื้นที่โครงการชลประทานทั้งประเทศ</h1>
+
+<br>
+    <select name="rid" id="rid" class="custom-select">
+      <option value="" >แสดงพื้นที่โครงการชลประทานทั้งประเทศ</option>
+    </select>
+    <br>
+    <br>
+
+    	
+        <div id="mapid" style="width: 1000px; height: 700px;
+        margin-left: auto;margin-right: auto;"></div>
+
+
+    
+    </div>
+
+  </div>
+
+  <!-- Bootstrap core JavaScript -->
+<script src="vendor/jquery/jquery.slim.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+
+
+    //var mymap = L.map('mapid').setView([13.788, 100.511], 6);
+    var mymap = new L.Map('mapid', {
+      fullscreenControl: {
+        pseudoFullscreen: true // if true, fullscreen to page width and height
+      }
+    }).setView([13.788, 100.511], 6);
+
+    var marker;
+
+
+    $.ajax({
+      url: "http://gis.rid.go.th/geoserver/ridbasic/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ridbasic:virrproject_all&maxFeatures=50&outputFormat=text%2Fjavascript",
+      dataType: "jsonp",
+      jsonpCallback: "parseResponse",
+      success: function(result){
+        var i;
+        var str;
+        
+
+        str += '<option value="-1">'+ "แสดงพื้นที่โครงการชลประทานทั้งประเทศ" + '</option>';
+        for (i = 0; i < result.features.length; i++) {
+          str += '<option value="'+i+'">'+ result.features[i].properties.projname + '</option>';
+        }
+
+        $('#rid').html(str);
+          Array.prototype.forEach.call(result.features, map => {
+          
+          marker = L.marker(map.geometry.coordinates.reverse()).addTo(mymap);
+
+         /* if(map.properties.projname === "อ่างเก็บน้ำแม่ปืม"){
+          	marker.bindPopup(poptable).openPopup();
+          	L.DomUtil.get('pname').textContent = map.properties.projname;
+          	L.DomUtil.get('ptypes').textContent = map.properties.project_type;
+          	L.DomUtil.get('powner').textContent = map.properties.owner;
+          }*/
+
+          marker.bindPopup('<form style="width: 250px;"><table id="leaflettb"><tr><th>Name:</th><td>'+map.properties.projname+'</td></tr><tr><th>Type:</th><td >'+map.properties.project_type+'</td></tr><tr><th>Owner:</th><td>'+map.properties.owner+'</td></tr></table></form>').openPopup();
+        });
+    
+        $( "#rid" ).change(function(){
+          $('.leaflet-interactive').remove();
+          $(".leaflet-pane.leaflet-shadow-pane").remove();
+          $(".leaflet-popup").remove();
+
+          var listrid = document.getElementById('rid');
+          var opt = listrid.options[listrid.selectedIndex];
+        
+          Array.prototype.forEach.call(result.features, map_select => {
+            //console.log(opt.text + "|" + map_select.properties.projname);
+            if(opt.text === "แสดงพื้นที่โครงการชลประทานทั้งประเทศ"){
+              marker = L.marker(map_select.geometry.coordinates).addTo(mymap);
+               marker.bindPopup('<form style="width: 250px;"><table id="leaflettb"><tr><th>Name:</th><td>'+map_select.properties.projname+'</td></tr><tr><th>Type:</th><td>'+map_select.properties.project_type+'</td></tr><tr><th>Owner:</th><td>'+map_select.properties.owner+'</td></tr></table></form>').openPopup();
+              mymap.setView([13.788, 100.511], 6);
+              
+            }
+
+            if(opt.text === map_select.properties.projname){
+              marker = L.marker(map_select.geometry.coordinates).addTo(mymap);
+              marker.bindPopup('<form style="width: 250px;"><table id="leaflettb"><tr><th>Name:</th><td>'+map_select.properties.projname+'</td></tr><tr><th>Type:</th><td>'+map_select.properties.project_type+'</td></tr><tr><th>Owner:</th><td>'+map_select.properties.owner+'</td></tr></table></form>').openPopup();
+              /*marker.bindPopup(poptable).openPopup();
+          		L.DomUtil.get('pname').textContent = map_select.properties.projname;
+          		L.DomUtil.get('ptypes').textContent = map_select.properties.project_type;
+          		L.DomUtil.get('powner').textContent = map_select.properties.owner;*/
+              mymap.setView(map_select.geometry.coordinates, 14);
+            }
+		  });
+		 });
+
+        
+
+        
+
+      }
+    });
+
+    L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains:['mt0','mt1','mt2','mt3'],
+      attribution: 'Simple Leaflet'
+    }).addTo(mymap);
+
+
+
+</script>
+
+
+
+
+</div>
+
+</body>
+</html>

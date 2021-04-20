@@ -2,7 +2,4 @@
 โปรเจคทำส่งที่ฝึกงาน
 
 ฝึก Skill 
-  HTML
-  CSS
-  JavaScript
-  Asynchronous JavaScript and XML
+HTML \r\n CSS \r\n JavaScript \r\n Asynchronous JavaScript and XML
